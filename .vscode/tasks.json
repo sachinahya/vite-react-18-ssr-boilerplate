@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "yarn clean",
+      "detail": "yarn clean",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev-debug-terminate",
+      "command": "echo ${input:dev-debug-terminate}",
+      "type": "shell",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev-debug",
+      "type": "shell",
+      "command": "yarn dev-debug",
+      "detail": "yarn dev-debug",
+      "isBackground": true,
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": ".",
+              "file": 1,
+              "location": 2,
+              "message": 3
+            }
+          ],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "Bootstrapping environment aws://000000000000",
+            "endsPattern": "^(?:.+)\\.graphqlEndpointLocal = "
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dev-debug-terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "dev-debug"
+    }
+  ]
+}
