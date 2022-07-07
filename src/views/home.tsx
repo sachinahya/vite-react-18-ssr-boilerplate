@@ -20,7 +20,13 @@ export const Home: FC = () => {
   return (
     <div>
       <h1>Home</h1>
-      <button onClick={(event) => console.log(event)}>Test</button>
+      <button
+        onClick={(event) => {
+          console.log(event);
+        }}
+      >
+        Test
+      </button>
       <Suspense fallback={<div>Loading todo 1...</div>}>
         <TodoList />
       </Suspense>

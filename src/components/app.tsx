@@ -1,16 +1,7 @@
-import { FC, lazy, ReactElement, Suspense } from 'react';
-import { ReactQueryDevtools } from 'react-query/devtools';
+import { FC, ReactElement } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { delay } from '../lib/delay';
-
 import {} from './app.css';
-
-const Home = lazy(() =>
-  delay(0)
-    .then(() => import('./home'))
-    .then((mod) => ({ default: mod.Home })),
-);
 
 export interface AppProps {
   url?: string;
@@ -18,25 +9,9 @@ export interface AppProps {
   styles?: string[];
   seo?: ReactElement;
   title?: string;
-  dev?: {
-    preamble: string;
-    entryScripts: string[];
-  };
 }
 
-const Dev: FC<{ preamble: string; entryScripts: string[] }> = (props) => {
-  return (
-    <div>
-      {/* eslint-disable-next-line react/no-danger -- Development only. */}
-      <div dangerouslySetInnerHTML={{ __html: props.preamble }} />
-      {props.entryScripts.map((src) => (
-        <script key={src} type="module" src={src} async />
-      ))}
-    </div>
-  );
-};
-
-export const App: FC<AppProps> = ({ lang, styles = [], seo, title, dev }) => {
+export const App: FC<AppProps> = ({ lang, styles = [], seo, title }) => {
   return (
     <html lang={lang}>
       <head>
@@ -50,7 +25,6 @@ export const App: FC<AppProps> = ({ lang, styles = [], seo, title, dev }) => {
         {seo}
       </head>
       <body>
-        {dev && <Dev {...dev} />}
         <div>
           <h6>App</h6>
           <Outlet />

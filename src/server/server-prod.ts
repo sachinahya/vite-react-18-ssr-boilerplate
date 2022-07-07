@@ -2,7 +2,6 @@ import path from 'path';
 
 import fastifyStatic from '@fastify/static';
 import fastify from 'fastify';
-import isBot from 'isbot';
 
 import { render } from './entry-server';
 import { createStream, listen } from './fastify';
@@ -24,14 +23,13 @@ const createServer = async (): Promise<void> => {
   const { scripts, styles } = __VITE_CLIENT_ASSETS__;
 
   app.all('*', async (request, reply) => {
-    const { headers, url } = request;
-    const isCrawler = isBot(headers['user-agent']);
+    // const isCrawler = isBot(headers['user-agent']);
 
-    const { jsx, queryClient } = await render({ url, styles });
+    const { jsx, queryClient } = await render({ url: request.url, styles });
 
     const stream = createStream(jsx, {
       entryScripts: scripts,
-      useOnAllReady: isCrawler,
+      useOnAllReady: true,
       onBeforePipe: dehydrateQueryClient(queryClient),
       onAfterPipe: writeDehydratedState,
     });

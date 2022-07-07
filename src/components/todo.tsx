@@ -12,7 +12,7 @@ export const Todo: FC<TodoProps> = ({ id }) => {
   return (
     <div>
       <pre>{JSON.stringify(todo, undefined, 2)}</pre>
-      <button onClick={(event) => void refetch()}>Test</button>
+      <button onClick={() => void refetch()}>Test</button>
     </div>
   );
 };

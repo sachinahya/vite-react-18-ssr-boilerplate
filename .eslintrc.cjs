@@ -56,7 +56,7 @@ module.exports = {
 
     // Use custom logger implementations instead.
     'no-alert': 'error',
-    'no-console': 'error',
+    // 'no-console': 'error',
 
     // These return values are ignored - having them is probably a mistake.
     'no-constructor-return': 'error',

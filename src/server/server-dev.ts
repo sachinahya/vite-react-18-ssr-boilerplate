@@ -48,7 +48,10 @@ const createServer = async (): Promise<void> => {
     // This obtains the code for the Vite HMR client, and also applies HTML transforms from Vite
     // plugins, e.g.global preambles from @vitejs/plugin-react
     const devTemplate = await vite.transformIndexHtml(url, '');
-    const asyncDevTemplate = devTemplate.replaceAll('type="module"', 'type="module" async');
+
+    // Make it async so it doesn't defer. This allows it to usually load before the client entry
+    // though is potentially subject to race conditions.
+    const asyncDevTemplate = devTemplate.replaceAll('type="module"', 'type="module" async=""');
 
     let jsx: ReactNode = null;
     let queryClient: QueryClient;
@@ -56,10 +59,6 @@ const createServer = async (): Promise<void> => {
     try {
       ({ jsx, queryClient } = await render({
         url,
-        dev: {
-          preamble: asyncDevTemplate,
-          entryScripts: [],
-        },
       }));
     } catch (error) {
       if (error instanceof Error) {
@@ -72,10 +71,20 @@ const createServer = async (): Promise<void> => {
     }
 
     const stream = createStream(jsx, {
+      // Wait for the entire app to load before start sending the response.
+      // Once Suspense for Data Fetching is ready and supported by React Query, we can remove this
+      // and stream the response instead.
       useOnAllReady: true,
       entryScripts: scripts,
+      // Capture React Query state before we start to send the HTML.
       onBeforePipe: dehydrateQueryClient(queryClient),
-      onAfterPipe: writeDehydratedState,
+      onAfterPipe: (data, stream) => {
+        // Output this after the React stream to prevent hydration errors.
+        reply.raw.write(asyncDevTemplate);
+
+        // Output React Query state.
+        writeDehydratedState(data, stream);
+      },
     });
 
     return stream(reply);
