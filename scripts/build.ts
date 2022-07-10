@@ -3,7 +3,15 @@ import path from 'path';
 import { JSDOM } from 'jsdom';
 import { build } from 'vite';
 
-import { extractScripts, extractStyles } from '../src/lib/get-assets';
+const extractStyles = (document: Pick<ParentNode, 'querySelectorAll'>): string[] =>
+  [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href^="/assets"]')].map(
+    (link) => link.href,
+  );
+
+const extractScripts = (document: Pick<ParentNode, 'querySelectorAll'>): string[] =>
+  [...document.querySelectorAll<HTMLScriptElement>('script[src^="/assets"]')].map(
+    (script) => script.src,
+  );
 
 const rootDir = path.join(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');

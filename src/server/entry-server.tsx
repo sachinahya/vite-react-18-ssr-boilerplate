@@ -6,7 +6,7 @@ import { StaticRouter } from 'react-router-dom/server';
 
 import { AppProps } from '../components/app';
 import { AppRoutes } from '../components/routes';
-import { queryClientDefaultOptions } from '../lib/query-client';
+import { createQueryClient } from '../lib/query/create-query-client';
 
 export interface RenderAppOptions extends AppProps {
   url: string;
@@ -18,8 +18,8 @@ export const render = (
   jsx: ReactNode;
   queryClient: QueryClient;
 }> => {
-  // Initialise the query client to use for this render.
-  const queryClient = new QueryClient({ defaultOptions: queryClientDefaultOptions });
+  // Initialise the query client to use for this request.
+  const queryClient = createQueryClient();
 
   // Render the app element.
   const jsx = (

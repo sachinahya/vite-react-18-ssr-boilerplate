@@ -4,11 +4,10 @@ import { Writable } from 'stream';
 import chalk from 'chalk';
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { ReactNode } from 'react';
-import {
-  PipeableStream,
-  renderToPipeableStream,
-  RenderToPipeableStreamOptions,
-} from 'react-dom/server';
+import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom/server';
+
+import { ReactStreamWriter } from './react-stream-writer';
+import { StreamEnhancer } from './stream/stream-enhancer';
 
 export const listen = async (app: FastifyInstance, port: number): Promise<void> => {
   try {
@@ -21,11 +20,11 @@ export const listen = async (app: FastifyInstance, port: number): Promise<void> 
   }
 };
 
-export interface CreateStreamOptions<TBefore> {
+export interface CreateStreamOptions {
   entryScripts?: string[];
   useOnAllReady?: boolean;
-  onBeforePipe?: () => TBefore;
-  onAfterPipe?: (data: TBefore, writable: NodeJS.WritableStream) => void;
+  devTemplate?: string;
+  enhancers?: StreamEnhancer[];
 }
 
 const DOCTYPE = '<!doctype html>';
@@ -39,37 +38,11 @@ const setHeaders = (response: ServerResponse, didError: boolean) => {
   }
 };
 
-class ReactStreamEnhancer extends Writable {
-  constructor(private _writable: Writable) {
-    super();
-  }
-
-  override _write(
-    chunk: unknown,
-    encoding: BufferEncoding,
-    callback: (error?: Error | null | undefined) => void,
-  ): void {
-    if (this._writable.destroyed) {
-      return;
-    }
-
-    this._writable.write(chunk, encoding, callback);
-  }
-
-  public flush() {
-    const flushableStream = this._writable as typeof this._writable & { flush: unknown };
-
-    if (typeof flushableStream.flush === 'function') {
-      flushableStream.flush();
-    }
-  }
-}
-
-export const createStream = <TBefore>(
+export const createStream = (
   jsx: ReactNode,
-  options: CreateStreamOptions<TBefore>,
+  options: CreateStreamOptions,
 ): ((reply: FastifyReply) => FastifyReply) => {
-  const { entryScripts, useOnAllReady, onBeforePipe, onAfterPipe } = options;
+  const { entryScripts, useOnAllReady, devTemplate, enhancers } = options;
 
   const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
     ? 'onAllReady'
@@ -83,26 +56,22 @@ export const createStream = <TBefore>(
       [reactRenderMethodName]() {
         setHeaders(reply.raw, didError);
 
-        const state = onBeforePipe?.();
-
-        const proxy = new ReactStreamEnhancer(reply.raw);
+        // Use a stream enhancers if we are streaming to inject stuff into the stream.
+        const writableStream =
+          !useOnAllReady && enhancers ? new ReactStreamWriter(reply.raw, enhancers) : reply.raw;
 
         // Send the HTML.
-        const stream: Writable = pipeableStream.pipe(proxy);
+        const pipedStream: Writable = pipeableStream.pipe(writableStream);
 
-        if (state) {
-          onAfterPipe?.(state, reply.raw);
+        if (devTemplate) {
+          reply.raw.write(devTemplate);
         }
 
-        stream.once('finish', () => {
-          /**
-           * Actually, it is not necessary to call res.end manually,
-           * cause React does this by itself
-           *
-           * But, if we have any wrapper on res, we can not be sure,
-           * that wrapper implements all needed methods (especially _final)
-           * So, the `end` method will be called manually, if writable has not been ended yet.
-           */
+        pipedStream.once('finish', () => {
+          // Normally React calls .end on the writable by itself.
+          // But since we have a wrapper around the writable we cannot be sure that the wrapper
+          // correctly implements all needed methods.
+          // So we will call .end manually if the writable has not been ended yet.
           if (!reply.raw.writableEnded) {
             reply.raw.end();
           }

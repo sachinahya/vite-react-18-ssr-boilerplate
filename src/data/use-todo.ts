@@ -1,10 +1,10 @@
-import { useQuery } from 'react-query';
+import { useAppQuery } from '../lib/query/use-app-query';
 
 import { fetchTodo } from './fetch-todo';
 
 export const useTodo = (id: number): { data: unknown; refetch: () => Promise<void> } => {
-  const { data, refetch } = useQuery(['todo', id], () => fetchTodo(id));
+  const { result, refetch } = useAppQuery(['todo', id], () => fetchTodo(id));
 
   // @ts-expect-error -- Test.
-  return { data, refetch };
+  return { data: result, refetch };
 };

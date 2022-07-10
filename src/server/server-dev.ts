@@ -10,7 +10,7 @@ import { QueryClient } from 'react-query';
 import { createServer as createViteServer } from 'vite';
 
 import { createStream, listen } from './fastify';
-import { dehydrateQueryClient, writeDehydratedState } from './hydrate-query-client';
+import { ReactQueryStreamEnhancer } from './stream/react-query-stream-enhancer';
 
 const createServer = async (): Promise<void> => {
   const app = fastify({ logger: false });
@@ -40,6 +40,9 @@ const createServer = async (): Promise<void> => {
 
   app.all('*', async (request, reply) => {
     const { url } = request;
+    console.log('----------------------------------------');
+    console.log(url);
+    console.log('----------------------------------------');
 
     const { render } = (await vite.ssrLoadModule(
       path.join(__dirname, './entry-server.tsx'),
@@ -71,20 +74,10 @@ const createServer = async (): Promise<void> => {
     }
 
     const stream = createStream(jsx, {
-      // Wait for the entire app to load before start sending the response.
-      // Once Suspense for Data Fetching is ready and supported by React Query, we can remove this
-      // and stream the response instead.
-      useOnAllReady: true,
+      useOnAllReady: false,
       entryScripts: scripts,
-      // Capture React Query state before we start to send the HTML.
-      onBeforePipe: dehydrateQueryClient(queryClient),
-      onAfterPipe: (data, stream) => {
-        // Output this after the React stream to prevent hydration errors.
-        reply.raw.write(asyncDevTemplate);
-
-        // Output React Query state.
-        writeDehydratedState(data, stream);
-      },
+      devTemplate: asyncDevTemplate,
+      enhancers: [new ReactQueryStreamEnhancer(queryClient)],
     });
 
     return stream(reply);
