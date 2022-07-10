@@ -6,6 +6,7 @@ import { StaticRouter } from 'react-router-dom/server';
 
 import { AppProps } from '../components/app';
 import { AppRoutes } from '../components/routes';
+import { HeadProvider, HeadStore } from '../lib/head';
 import { createQueryClient } from '../lib/query/create-query-client';
 
 export interface RenderAppOptions extends AppProps {
@@ -17,21 +18,26 @@ export const render = (
 ): Promise<{
   jsx: ReactNode;
   queryClient: QueryClient;
+  headStore: HeadStore;
 }> => {
   // Initialise the query client to use for this request.
   const queryClient = createQueryClient();
+  const headStore = new HeadStore();
 
   // Render the app element.
   const jsx = (
-    <QueryClientProvider client={queryClient}>
-      <StaticRouter location={props.url}>
-        <AppRoutes {...props} />
-      </StaticRouter>
-    </QueryClientProvider>
+    <HeadProvider store={headStore}>
+      <QueryClientProvider client={queryClient}>
+        <StaticRouter location={props.url}>
+          <AppRoutes {...props} />
+        </StaticRouter>
+      </QueryClientProvider>
+    </HeadProvider>
   );
 
   return Promise.resolve({
     jsx,
     queryClient,
+    headStore,
   });
 };

@@ -372,7 +372,7 @@ module.exports = {
     },
     {
       // Server stuff
-      files: ['./scripts/*.*', './src/server/*.*'],
+      files: ['./scripts/*.*', './src/server/*.*', './src/server/**/*.*'],
       rules: {
         'import/no-nodejs-modules': 'off',
       },

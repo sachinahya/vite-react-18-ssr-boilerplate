@@ -1,35 +1,28 @@
-import { FC, ReactElement } from 'react';
-import { Outlet } from 'react-router-dom';
+import { FC } from 'react';
+import { Link, Outlet } from 'react-router-dom';
 
 import {} from './app.css';
 
 export interface AppProps {
   url?: string;
-  lang?: string;
-  styles?: string[];
-  seo?: ReactElement;
-  title?: string;
 }
 
-export const App: FC<AppProps> = ({ lang, styles = [], seo, title }) => {
+export const App: FC<AppProps> = () => {
   return (
-    <html lang={lang}>
-      <head>
-        <title>{title || 'App'}</title>
-        <meta charSet="utf8" />
-        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {styles.map((href) => (
-          <link key={href} rel="stylesheet" href={href} />
-        ))}
-        {seo}
-      </head>
-      <body>
-        <div>
-          <h6>App</h6>
-          <Outlet />
-        </div>
-      </body>
-    </html>
+    <div>
+      <h6>App</h6>
+      <ul>
+        <li>
+          <Link to="/">Home</Link>
+        </li>
+        <li>
+          <Link to="/about">About</Link>
+        </li>
+        <li>
+          <Link to="/contact">Contact</Link>
+        </li>
+      </ul>
+      <Outlet />
+    </div>
   );
 };

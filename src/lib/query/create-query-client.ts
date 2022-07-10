@@ -8,6 +8,7 @@ export const createQueryClient = (): QueryClient =>
         keepPreviousData: true,
         suspense: true,
         useErrorBoundary: true,
+        staleTime: 10_000,
       },
     },
   });

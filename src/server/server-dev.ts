@@ -9,8 +9,11 @@ import { ReactNode } from 'react';
 import { QueryClient } from 'react-query';
 import { createServer as createViteServer } from 'vite';
 
+import { HeadStore } from '../lib/head';
+
 import { createStream, listen } from './fastify';
-import { ReactQueryStreamEnhancer } from './stream/react-query-stream-enhancer';
+import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer';
+import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer';
 
 const createServer = async (): Promise<void> => {
   const app = fastify({ logger: false });
@@ -58,9 +61,10 @@ const createServer = async (): Promise<void> => {
 
     let jsx: ReactNode = null;
     let queryClient: QueryClient;
+    let headStore: HeadStore;
 
     try {
-      ({ jsx, queryClient } = await render({
+      ({ jsx, queryClient, headStore } = await render({
         url,
       }));
     } catch (error) {
@@ -77,7 +81,8 @@ const createServer = async (): Promise<void> => {
       useOnAllReady: false,
       entryScripts: scripts,
       devTemplate: asyncDevTemplate,
-      enhancers: [new ReactQueryStreamEnhancer(queryClient)],
+      enhancers: [new HeadStreamEnhancer(headStore), new ReactQueryStreamEnhancer(queryClient)],
+      head: headStore,
     });
 
     return stream(reply);

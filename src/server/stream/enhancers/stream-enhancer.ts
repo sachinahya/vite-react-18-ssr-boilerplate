@@ -1,8 +1,8 @@
-export interface StreamWriter {
-  write(chunk: unknown): void;
-}
+import { StreamWriter } from '../writers/stream-writer';
 
 export interface StreamEnhancer {
+  readonly scriptKey: string;
+
   /**
    * Fired immediately before React writes to the response stream.
    *

@@ -1,16 +1,18 @@
 import { Query, QueryClient, DehydratedState } from 'react-query';
-import { v4 as uuid } from 'uuid';
 
 import {
   bootstrapQueryStateInBrowser,
   getDehydratedQueryAssignment,
-} from '../../lib/query/hydration';
+} from '../../../lib/query/hydration';
+import { StreamWriter } from '../writers/stream-writer';
 
-import { StreamEnhancer, StreamWriter } from './stream-enhancer';
+import { StreamEnhancer } from './stream-enhancer';
 
 type DehydratedQuery = DehydratedState['queries'][number];
 
 export class ReactQueryStreamEnhancer implements StreamEnhancer {
+  scriptKey: string = 'react_query';
+
   /**
    * The query client scoped to the current request.
    */
@@ -47,14 +49,14 @@ export class ReactQueryStreamEnhancer implements StreamEnhancer {
     }
 
     const stringifiedQueries = this.#stringifyQueries(readyQueries);
-    const scriptElementHtml = this.#generateScriptHtml(stringifiedQueries);
-
-    // Write the script into the stream before React renders the component HTML.
-    writer.write(scriptElementHtml);
+    writer.writeImmediateScript(stringifiedQueries);
   }
 
   #stringifyQueries(queries: Query[]): string {
-    const scriptQueryAssignments: string[] = [];
+    const scriptQueryAssignments: string[] = [
+      // Ensure the global variable is defined.
+      bootstrapQueryStateInBrowser(),
+    ];
 
     for (const query of queries) {
       // Dehydrate the query to a plain object.
@@ -68,29 +70,6 @@ export class ReactQueryStreamEnhancer implements StreamEnhancer {
     }
 
     return scriptQueryAssignments.join('\n');
-  }
-
-  #generateScriptHtml(stringifiedQueries: string): string {
-    const id = uuid().replaceAll('-', '');
-
-    // Give each script element and
-    const scriptId = 'react_query_' + id;
-    const scriptVarName = 'react_query_script_' + id;
-
-    // We inject a script that executes right before the next chunk is parsed.
-    // It assigns each dehydrated query to the window object so the client can hydrate it.
-    // The script element removes itself from the DOM before React sees it which allows
-    // hydration to work properly.
-    const scriptContent = [
-      // Ensure the global variable is defined.
-      bootstrapQueryStateInBrowser(),
-      `var ${scriptVarName} = document.createElement('script');`,
-      `${scriptVarName}.innerHTML = ${JSON.stringify(stringifiedQueries)};`,
-      `document.body.appendChild(${scriptVarName});`,
-      `document.getElementById("${scriptId}").remove();`,
-    ].join('\n');
-
-    return `<script id="${scriptId}">${scriptContent}</script>`;
   }
 
   /**

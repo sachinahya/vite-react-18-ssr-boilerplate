@@ -6,8 +6,12 @@ import { FastifyInstance, FastifyReply } from 'fastify';
 import { ReactNode } from 'react';
 import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom/server';
 
-import { ReactStreamWriter } from './react-stream-writer';
-import { StreamEnhancer } from './stream/stream-enhancer';
+import { APP_CONTAINER_ID } from '../constants';
+import { HeadStore } from '../lib/head';
+
+import { getHead } from './head';
+import { StreamEnhancer } from './stream/enhancers/stream-enhancer';
+import { IntermediateSsrStream } from './stream/intermediate-ssr-stream';
 
 export const listen = async (app: FastifyInstance, port: number): Promise<void> => {
   try {
@@ -21,6 +25,7 @@ export const listen = async (app: FastifyInstance, port: number): Promise<void> 
 };
 
 export interface CreateStreamOptions {
+  head: HeadStore;
   entryScripts?: string[];
   useOnAllReady?: boolean;
   devTemplate?: string;
@@ -42,7 +47,7 @@ export const createStream = (
   jsx: ReactNode,
   options: CreateStreamOptions,
 ): ((reply: FastifyReply) => FastifyReply) => {
-  const { entryScripts, useOnAllReady, devTemplate, enhancers } = options;
+  const { head, entryScripts, useOnAllReady, devTemplate, enhancers } = options;
 
   const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
     ? 'onAllReady'
@@ -51,31 +56,42 @@ export const createStream = (
   return (reply) => {
     let didError = false;
 
+    // Start writing what we can before React starts rendering.
+    reply.raw.write(`<!doctype html><html><head>`);
+
     const pipeableStream = renderToPipeableStream(jsx, {
       bootstrapModules: entryScripts,
       [reactRenderMethodName]() {
         setHeaders(reply.raw, didError);
 
+        // Add the head content, grabbing whatever context we can from the app render.
+        const headHtml = getHead(head);
+        reply.raw.write(`${headHtml}</head><body><div id="${APP_CONTAINER_ID}">`);
+
+        const useReactStreamWriter = !useOnAllReady && enhancers;
+
         // Use a stream enhancers if we are streaming to inject stuff into the stream.
-        const writableStream =
-          !useOnAllReady && enhancers ? new ReactStreamWriter(reply.raw, enhancers) : reply.raw;
+        const writableStream = useReactStreamWriter
+          ? new IntermediateSsrStream(reply.raw, enhancers)
+          : reply.raw;
 
         // Send the HTML.
         const pipedStream: Writable = pipeableStream.pipe(writableStream);
 
-        if (devTemplate) {
-          reply.raw.write(devTemplate);
-        }
+        // Close off the document.
+        reply.raw.write(`</div>${devTemplate || ''}</body></html>`);
 
-        pipedStream.once('finish', () => {
-          // Normally React calls .end on the writable by itself.
-          // But since we have a wrapper around the writable we cannot be sure that the wrapper
-          // correctly implements all needed methods.
-          // So we will call .end manually if the writable has not been ended yet.
-          if (!reply.raw.writableEnded) {
-            reply.raw.end();
-          }
-        });
+        if (useReactStreamWriter) {
+          pipedStream.once('finish', () => {
+            // Normally React calls .end on the writable by itself.
+            // But since we have a wrapper around the writable we cannot be sure that the wrapper
+            // correctly implements all needed methods.
+            // So we will call .end manually if the writable has not been ended yet.
+            if (!reply.raw.writableEnded) {
+              reply.raw.end();
+            }
+          });
+        }
       },
       onShellError: () => {
         // Something errored before we could complete the shell so we emit an alternative shell.

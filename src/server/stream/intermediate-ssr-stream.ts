@@ -1,21 +1,16 @@
 import { Writable } from 'stream';
 
-import { StreamEnhancer, StreamWriter } from './stream/stream-enhancer';
+import { StreamEnhancer } from './enhancers/stream-enhancer';
+import { NodeStreamWriter } from './writers/node-stream-writer';
 
-export class ReactStreamWriter extends Writable {
+export class IntermediateSsrStream extends Writable {
   #parentWritable: Writable;
   #enhancers: StreamEnhancer[];
-  #streamWriter: StreamWriter;
 
   constructor(writable: Writable, enhancers: StreamEnhancer[]) {
     super();
     this.#parentWritable = writable;
     this.#enhancers = enhancers;
-    this.#streamWriter = {
-      write(chunk) {
-        writable.write(chunk);
-      },
-    };
   }
 
   override _write(
@@ -28,7 +23,8 @@ export class ReactStreamWriter extends Writable {
     }
 
     for (const enhancer of this.#enhancers) {
-      enhancer.onBeforeWrite(this.#streamWriter);
+      const writer = new NodeStreamWriter(this.#parentWritable, enhancer.scriptKey);
+      enhancer.onBeforeWrite(writer);
     }
 
     this.#parentWritable.write(chunk, encoding, callback);

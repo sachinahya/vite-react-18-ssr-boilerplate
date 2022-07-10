@@ -1,5 +1,7 @@
 import { FC, lazy, Suspense } from 'react';
 
+import { Head } from '../components/head';
+
 const TodoList = lazy(() =>
   import('./components/todo-list').then((mod) => ({ default: mod.TodoList })),
 );
@@ -7,6 +9,7 @@ const TodoList = lazy(() =>
 export const Home: FC = () => {
   return (
     <div>
+      <Head title="Home" />
       <h1>Home</h1>
       <button
         onClick={(event) => {
