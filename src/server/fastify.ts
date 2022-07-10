@@ -1,7 +1,14 @@
+import { ServerResponse } from 'http';
+import { Writable } from 'stream';
+
 import chalk from 'chalk';
 import { FastifyInstance, FastifyReply } from 'fastify';
 import { ReactNode } from 'react';
-import { PipeableStream, renderToPipeableStream } from 'react-dom/server';
+import {
+  PipeableStream,
+  renderToPipeableStream,
+  RenderToPipeableStreamOptions,
+} from 'react-dom/server';
 
 export const listen = async (app: FastifyInstance, port: number): Promise<void> => {
   try {
@@ -23,14 +30,40 @@ export interface CreateStreamOptions<TBefore> {
 
 const DOCTYPE = '<!doctype html>';
 
-const setHeaders = (reply: FastifyReply, didError: boolean) => {
+const setHeaders = (response: ServerResponse, didError: boolean) => {
   // If something errored before we started streaming, we set the error code appropriately.
-  reply.raw.statusCode = didError ? 500 : 200;
+  response.statusCode = didError ? 500 : 200;
 
-  if (!reply.raw.headersSent) {
-    reply.raw.setHeader('Content-Type', 'text/html');
+  if (!response.headersSent) {
+    response.setHeader('Content-Type', 'text/html');
   }
 };
+
+class ReactStreamEnhancer extends Writable {
+  constructor(private _writable: Writable) {
+    super();
+  }
+
+  override _write(
+    chunk: unknown,
+    encoding: BufferEncoding,
+    callback: (error?: Error | null | undefined) => void,
+  ): void {
+    if (this._writable.destroyed) {
+      return;
+    }
+
+    this._writable.write(chunk, encoding, callback);
+  }
+
+  public flush() {
+    const flushableStream = this._writable as typeof this._writable & { flush: unknown };
+
+    if (typeof flushableStream.flush === 'function') {
+      flushableStream.flush();
+    }
+  }
+}
 
 export const createStream = <TBefore>(
   jsx: ReactNode,
@@ -38,43 +71,46 @@ export const createStream = <TBefore>(
 ): ((reply: FastifyReply) => FastifyReply) => {
   const { entryScripts, useOnAllReady, onBeforePipe, onAfterPipe } = options;
 
+  const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
+    ? 'onAllReady'
+    : 'onShellReady';
+
   return (reply) => {
     let didError = false;
 
-    const onReady = (stream: PipeableStream) => {
-      setHeaders(reply, didError);
-
-      const state = onBeforePipe?.();
-
-      // Send the HTML.
-      stream.pipe(reply.raw);
-
-      if (state) {
-        onAfterPipe?.(state, reply.raw);
-      }
-    };
-
-    const stream = renderToPipeableStream(jsx, {
+    const pipeableStream = renderToPipeableStream(jsx, {
       bootstrapModules: entryScripts,
-      onShellReady: () => {
-        // The content above all Suspense boundaries is ready.
+      [reactRenderMethodName]() {
+        setHeaders(reply.raw, didError);
 
-        if (!useOnAllReady) {
-          onReady(stream);
+        const state = onBeforePipe?.();
+
+        const proxy = new ReactStreamEnhancer(reply.raw);
+
+        // Send the HTML.
+        const stream: Writable = pipeableStream.pipe(proxy);
+
+        if (state) {
+          onAfterPipe?.(state, reply.raw);
         }
+
+        stream.once('finish', () => {
+          /**
+           * Actually, it is not necessary to call res.end manually,
+           * cause React does this by itself
+           *
+           * But, if we have any wrapper on res, we can not be sure,
+           * that wrapper implements all needed methods (especially _final)
+           * So, the `end` method will be called manually, if writable has not been ended yet.
+           */
+          if (!reply.raw.writableEnded) {
+            reply.raw.end();
+          }
+        });
       },
       onShellError: () => {
         // Something errored before we could complete the shell so we emit an alternative shell.
         void reply.status(500).send(`${DOCTYPE}<p>Error in SSR!</p>`);
-      },
-      onAllReady: () => {
-        // If you don't want streaming, use this instead of onShellReady.
-        // This will fire after the entire page content is ready.
-        // You can use this for crawlers or static generation.
-
-        if (useOnAllReady) {
-          onReady(stream);
-        }
       },
       onError: (error) => {
         didError = true;

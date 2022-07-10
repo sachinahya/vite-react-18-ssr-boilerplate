@@ -13,6 +13,7 @@ const main = async () => {
     build: {
       emptyOutDir: true,
       outDir: path.join(distDir, 'client'),
+      manifest: true,
       ssrManifest: true,
     },
   });

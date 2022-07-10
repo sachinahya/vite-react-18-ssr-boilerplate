@@ -21,7 +21,8 @@
   "ts-node": {
     "compilerOptions": {
       "module": "CommonJS"
-    }
+    },
+    "transpileOnly": true
   },
   "include": ["scripts", "src", "*.ts", ".eslintrc.cjs"]
 }
