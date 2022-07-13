@@ -10,15 +10,17 @@ declare module '@vitejs/plugin-react' {
   export = react;
 }
 
-declare const __VITE_CLIENT_ASSETS__: {
-  scripts: string[];
-  styles: string[];
-};
+declare global {
+  const __VITE_CLIENT_ASSETS__: {
+    scripts: string[];
+    styles: string[];
+  };
+
+  interface Window {
+    __REACT_QUERY_STATE__: unknown;
+  }
+}
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
-}
-
-interface Window {
-  __REACT_QUERY_STATE__: unknown;
 }

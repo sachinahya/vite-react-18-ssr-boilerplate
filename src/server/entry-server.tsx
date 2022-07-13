@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
+// @ts-expect-error -- No package exports entry for server.
 import { StaticRouter } from 'react-router-dom/server';
 
 import { AppProps } from '../components/app.js';
