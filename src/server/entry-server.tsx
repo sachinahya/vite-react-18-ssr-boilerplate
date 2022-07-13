@@ -1,14 +1,12 @@
-import 'cross-fetch/polyfill';
-
 import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { StaticRouter } from 'react-router-dom/server';
 
-import { AppProps } from '../components/app';
-import { Head } from '../components/head';
-import { AppRoutes } from '../components/routes';
-import { HeadContext, HeadProvider } from '../lib/head/head-provider';
-import { createQueryClient } from '../lib/query/create-query-client';
+import { AppProps } from '../components/app.js';
+import { Head } from '../components/head.js';
+import { AppRoutes } from '../components/routes.js';
+import { HeadContext, HeadProvider } from '../lib/head/head-provider.js';
+import { createQueryClient } from '../lib/query/create-query-client.js';
 
 export interface RenderAppOptions extends AppProps {
   url: string;

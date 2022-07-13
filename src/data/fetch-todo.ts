@@ -1,4 +1,4 @@
-import { delay } from '../lib/delay';
+import { delay } from '../lib/delay.js';
 
 export const fetchTodo = async (id: number): Promise<unknown> => {
   console.log('Fetching todo ' + id.toString());

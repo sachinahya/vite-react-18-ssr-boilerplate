@@ -1,10 +1,10 @@
 import { FC, Suspense } from 'react';
 
-import { Head } from '../../components/head';
-import { Todo } from '../../components/todo';
-import { useTodo } from '../../data/use-todo';
+import { Head } from '../../components/head.js';
+import { Todo } from '../../components/todo.js';
+import { useTodo } from '../../data/use-todo.js';
 
-import * as styles from './todo-list.css';
+import * as styles from './todo-list.css.js';
 
 export const TodoList: FC = () => {
   const data = useTodo(2);

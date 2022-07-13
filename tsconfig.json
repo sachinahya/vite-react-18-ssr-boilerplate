@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "module": "NodeNext",
     "useDefineForClassFields": true,
     "allowJs": false,
     "skipLibCheck": true,
@@ -10,8 +11,6 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -19,9 +18,7 @@
     "types": ["vitest/globals"]
   },
   "ts-node": {
-    "compilerOptions": {
-      "module": "CommonJS"
-    },
+    "esm": true,
     "transpileOnly": true
   },
   "include": ["scripts", "src", "*.ts", ".eslintrc.cjs"]

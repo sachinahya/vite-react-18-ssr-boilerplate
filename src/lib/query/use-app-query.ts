@@ -8,7 +8,7 @@ import {
   useQueryClient,
 } from 'react-query';
 
-import { getDehydratedQuery, isHydratedOnClient, setHydratedOnClient } from './hydration';
+import { getDehydratedQuery, isHydratedOnClient, setHydratedOnClient } from './hydration.js';
 
 const getDehydratedQueryStateFromDom = (
   queryKey: QueryKey,

@@ -1,19 +1,25 @@
+import '../lib/fetch-polyfill.js';
+
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import fastifyExpress from '@fastify/express';
 import detectPort from 'detect-port';
-import fastify from 'fastify';
+import { fastify } from 'fastify';
 import { JSDOM } from 'jsdom';
 import { ReactNode } from 'react';
 import { QueryClient } from 'react-query';
 import { createServer as createViteServer } from 'vite';
 
-import { HeadContext } from '../lib/head/head-provider';
+import { HeadContext } from '../lib/head/head-provider.js';
 
-import { createStream, listen } from './fastify';
-import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer';
-import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer';
+import { createStream, listen } from './fastify.js';
+import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer.js';
+import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const createServer = async (): Promise<void> => {
   const app = fastify({ logger: false });
@@ -49,7 +55,7 @@ const createServer = async (): Promise<void> => {
 
     const { render } = (await vite.ssrLoadModule(
       path.join(__dirname, './entry-server.tsx'),
-    )) as typeof import('./entry-server');
+    )) as typeof import('./entry-server.js');
 
     // This obtains the code for the Vite HMR client, and also applies HTML transforms from Vite
     // plugins, e.g.global preambles from @vitejs/plugin-react

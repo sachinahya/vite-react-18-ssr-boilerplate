@@ -1,6 +1,6 @@
 import { FilledContext } from 'react-helmet-async';
 
-import { HeadContext } from './head-provider';
+import { HeadContext } from './head-provider.js';
 
 export const getInitialSsrHead = (context: HeadContext): string => {
   const { helmet } = context as FilledContext;

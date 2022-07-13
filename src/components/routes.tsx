@@ -1,11 +1,11 @@
 import { FC, lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-const About = lazy(() => import('../views/about').then((mod) => ({ default: mod.About })));
-const Contact = lazy(() => import('../views/contact').then((mod) => ({ default: mod.Contact })));
-const Home = lazy(() => import('../views/home').then((mod) => ({ default: mod.Home })));
+const About = lazy(() => import('../views/about.js').then((mod) => ({ default: mod.About })));
+const Contact = lazy(() => import('../views/contact.js').then((mod) => ({ default: mod.Contact })));
+const Home = lazy(() => import('../views/home.js').then((mod) => ({ default: mod.Home })));
 
-import { App, AppProps } from './app';
+import { App, AppProps } from './app.js';
 
 export interface AppRoutesProps extends AppProps {}
 

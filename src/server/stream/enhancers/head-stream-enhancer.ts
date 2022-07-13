@@ -1,7 +1,7 @@
-import { HeadContext } from '../../../lib/head/head-provider';
-import { StreamWriter } from '../writers/stream-writer';
+import { HeadContext } from '../../../lib/head/head-provider.js';
+import { StreamWriter } from '../writers/stream-writer.js';
 
-import { StreamEnhancer } from './stream-enhancer';
+import { StreamEnhancer } from './stream-enhancer.js';
 
 export class HeadStreamEnhancer implements StreamEnhancer {
   scriptKey: string = 'head';

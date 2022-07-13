@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { useQuery } from 'react-query';
 
-import { delay } from '../lib/delay';
+import { delay } from '../lib/delay.js';
 
 export const Picture: FC<{ id: string }> = ({ id }) => {
   const { data } = useQuery(['picture', id], async () => {

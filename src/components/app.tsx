@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 
-import {} from './app.css';
-import { Head } from './head';
+import {} from './app.css.js';
+import { Head } from './head.js';
 
 export interface AppProps {}
 

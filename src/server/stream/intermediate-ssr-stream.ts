@@ -1,7 +1,7 @@
 import { Writable } from 'stream';
 
-import { StreamEnhancer } from './enhancers/stream-enhancer';
-import { NodeStreamWriter } from './writers/node-stream-writer';
+import { StreamEnhancer } from './enhancers/stream-enhancer.js';
+import { NodeStreamWriter } from './writers/node-stream-writer.js';
 
 export class IntermediateSsrStream extends Writable {
   #parentWritable: Writable;

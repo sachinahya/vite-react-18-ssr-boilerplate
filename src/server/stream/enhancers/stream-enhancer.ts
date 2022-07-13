@@ -1,4 +1,4 @@
-import { StreamWriter } from '../writers/stream-writer';
+import { StreamWriter } from '../writers/stream-writer.js';
 
 export interface StreamEnhancer {
   readonly scriptKey: string;

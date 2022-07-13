@@ -1,15 +1,21 @@
-import path from 'path';
+import '../lib/fetch-polyfill.js';
 
-import fastifyStatic from '@fastify/static';
-import fastify from 'fastify';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import { fastifyStatic } from '@fastify/static';
+import { fastify } from 'fastify';
 import isBot from 'isbot';
 
-import { HeadContext } from '../lib/head/head-provider';
+import { HeadContext } from '../lib/head/head-provider.js';
 
-import { render } from './entry-server';
-import { createStream, listen } from './fastify';
-import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer';
-import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer';
+import { render } from './entry-server.js';
+import { createStream, listen } from './fastify.js';
+import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer.js';
+import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const createServer = async (): Promise<void> => {
   const app = fastify();

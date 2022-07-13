@@ -2,7 +2,7 @@ import { Writable } from 'stream';
 
 import { v4 as uuid } from 'uuid';
 
-import { StreamWriter } from './stream-writer';
+import { StreamWriter } from './stream-writer.js';
 
 export class NodeStreamWriter implements StreamWriter {
   #writable: Writable;

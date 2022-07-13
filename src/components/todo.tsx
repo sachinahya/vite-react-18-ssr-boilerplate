@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { useTodo } from '../data/use-todo';
+import { useTodo } from '../data/use-todo.js';
 
 export interface TodoProps {
   id: number;

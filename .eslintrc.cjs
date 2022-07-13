@@ -1,3 +1,5 @@
+const tsConfig = './tsconfig.json';
+
 module.exports = {
   root: true,
   ignorePatterns: [
@@ -16,12 +18,18 @@ module.exports = {
     sourceType: 'module',
     // Point to the tsconfigs that specify which files should be linted.
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json'],
+    project: tsConfig,
   },
   settings: {
     react: { version: 'detect' },
     jest: {
       version: 27,
+    },
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: tsConfig,
+      },
     },
   },
   extends: [

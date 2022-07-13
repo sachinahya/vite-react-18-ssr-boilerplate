@@ -6,12 +6,12 @@ import { FastifyInstance, FastifyReply } from 'fastify';
 import { ReactNode } from 'react';
 import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom/server';
 
-import { APP_CONTAINER_ID } from '../constants';
-import { getInitialSsrHead } from '../lib/head/get-initial-ssr-head';
-import { HeadContext } from '../lib/head/head-provider';
+import { APP_CONTAINER_ID } from '../constants.js';
+import { getInitialSsrHead } from '../lib/head/get-initial-ssr-head.js';
+import { HeadContext } from '../lib/head/head-provider.js';
 
-import { StreamEnhancer } from './stream/enhancers/stream-enhancer';
-import { IntermediateSsrStream } from './stream/intermediate-ssr-stream';
+import { StreamEnhancer } from './stream/enhancers/stream-enhancer.js';
+import { IntermediateSsrStream } from './stream/intermediate-ssr-stream.js';
 
 export const listen = async (app: FastifyInstance, port: number): Promise<void> => {
   try {

@@ -1,9 +1,9 @@
 import { FC, lazy, Suspense } from 'react';
 
-import { Head } from '../components/head';
+import { Head } from '../components/head.js';
 
 const TodoList = lazy(() =>
-  import('./components/todo-list').then((mod) => ({ default: mod.TodoList })),
+  import('./components/todo-list.js').then((mod) => ({ default: mod.TodoList })),
 );
 
 export const About: FC = () => {

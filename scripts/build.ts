@@ -13,13 +13,12 @@ const extractScripts = (document: Pick<ParentNode, 'querySelectorAll'>): string[
     (script) => script.src,
   );
 
-const rootDir = path.join(__dirname, '..');
+const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
 
 const main = async () => {
   const clientResult = await build({
     build: {
-      emptyOutDir: true,
       outDir: path.join(distDir, 'client'),
       manifest: true,
       ssrManifest: true,
@@ -54,7 +53,6 @@ const main = async () => {
       __VITE_CLIENT_ASSETS__: assets,
     },
     build: {
-      emptyOutDir: true,
       outDir: path.join(distDir, 'server'),
       ssr: path.join(rootDir, 'src', 'server', 'server-prod.ts'),
     },

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Head } from '../components/head';
+import { Head } from '../components/head.js';
 
 export const Contact: FC = () => {
   return (

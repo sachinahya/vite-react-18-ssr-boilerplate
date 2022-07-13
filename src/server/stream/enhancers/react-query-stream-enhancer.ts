@@ -3,10 +3,10 @@ import { Query, QueryClient, DehydratedState } from 'react-query';
 import {
   bootstrapQueryStateInBrowser,
   getDehydratedQueryAssignment,
-} from '../../../lib/query/hydration';
-import { StreamWriter } from '../writers/stream-writer';
+} from '../../../lib/query/hydration.js';
+import { StreamWriter } from '../writers/stream-writer.js';
 
-import { StreamEnhancer } from './stream-enhancer';
+import { StreamEnhancer } from './stream-enhancer.js';
 
 type DehydratedQuery = DehydratedState['queries'][number];
 
