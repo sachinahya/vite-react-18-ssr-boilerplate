@@ -1,8 +1,8 @@
 {
   "name": "vite-react-18-ssr-boilerplate",
   "version": "0.0.0",
-  "type": "commonjs",
   "private": true,
+  "type": "module",
   "files": [
     "dist"
   ],
