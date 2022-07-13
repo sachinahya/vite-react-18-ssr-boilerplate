@@ -7,9 +7,9 @@ import { ReactNode } from 'react';
 import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom/server';
 
 import { APP_CONTAINER_ID } from '../constants';
-import { HeadStore } from '../lib/head';
+import { getInitialSsrHead } from '../lib/head/get-initial-ssr-head';
+import { HeadContext } from '../lib/head/head-provider';
 
-import { getHead } from './head';
 import { StreamEnhancer } from './stream/enhancers/stream-enhancer';
 import { IntermediateSsrStream } from './stream/intermediate-ssr-stream';
 
@@ -25,7 +25,7 @@ export const listen = async (app: FastifyInstance, port: number): Promise<void> 
 };
 
 export interface CreateStreamOptions {
-  head: HeadStore;
+  headContext: HeadContext;
   entryScripts?: string[];
   useOnAllReady?: boolean;
   devTemplate?: string;
@@ -47,7 +47,7 @@ export const createStream = (
   jsx: ReactNode,
   options: CreateStreamOptions,
 ): ((reply: FastifyReply) => FastifyReply) => {
-  const { head, entryScripts, useOnAllReady, devTemplate, enhancers } = options;
+  const { headContext, entryScripts, useOnAllReady, devTemplate, enhancers } = options;
 
   const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
     ? 'onAllReady'
@@ -65,7 +65,7 @@ export const createStream = (
         setHeaders(reply.raw, didError);
 
         // Add the head content, grabbing whatever context we can from the app render.
-        const headHtml = getHead(head);
+        const headHtml = getInitialSsrHead(headContext);
         reply.raw.write(`${headHtml}</head><body><div id="${APP_CONTAINER_ID}">`);
 
         const useReactStreamWriter = !useOnAllReady && enhancers;

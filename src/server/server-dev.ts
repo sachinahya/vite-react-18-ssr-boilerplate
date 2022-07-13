@@ -9,7 +9,7 @@ import { ReactNode } from 'react';
 import { QueryClient } from 'react-query';
 import { createServer as createViteServer } from 'vite';
 
-import { HeadStore } from '../lib/head';
+import { HeadContext } from '../lib/head/head-provider';
 
 import { createStream, listen } from './fastify';
 import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer';
@@ -61,11 +61,12 @@ const createServer = async (): Promise<void> => {
 
     let jsx: ReactNode = null;
     let queryClient: QueryClient;
-    let headStore: HeadStore;
+    const headContext: HeadContext = {};
 
     try {
-      ({ jsx, queryClient, headStore } = await render({
+      ({ jsx, queryClient } = await render({
         url,
+        headContext,
       }));
     } catch (error) {
       if (error instanceof Error) {
@@ -81,8 +82,8 @@ const createServer = async (): Promise<void> => {
       useOnAllReady: false,
       entryScripts: scripts,
       devTemplate: asyncDevTemplate,
-      enhancers: [new HeadStreamEnhancer(headStore), new ReactQueryStreamEnhancer(queryClient)],
-      head: headStore,
+      enhancers: [new HeadStreamEnhancer(headContext), new ReactQueryStreamEnhancer(queryClient)],
+      headContext,
     });
 
     return stream(reply);

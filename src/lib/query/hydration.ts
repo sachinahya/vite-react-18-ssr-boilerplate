@@ -9,7 +9,7 @@ type ReactQueryWindow = typeof window & {
 
 const state = (typeof window !== 'undefined' ? window : undefined) as ReactQueryWindow;
 
-export type DehydratedQuery = DehydratedState['queries'][number];
+type DehydratedQuery = DehydratedState['queries'][number];
 
 export const bootstrapQueryStateInBrowser = (): string =>
   `window.__REACT_QUERY__ = window.__REACT_QUERY__ || {};`;

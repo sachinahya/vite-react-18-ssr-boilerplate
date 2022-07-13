@@ -2,10 +2,14 @@ import path from 'path';
 
 import fastifyStatic from '@fastify/static';
 import fastify from 'fastify';
+import isBot from 'isbot';
+
+import { HeadContext } from '../lib/head/head-provider';
 
 import { render } from './entry-server';
 import { createStream, listen } from './fastify';
-import { dehydrateQueryClient, writeDehydratedState } from './hydrate-query-client';
+import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer';
+import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer';
 
 const createServer = async (): Promise<void> => {
   const app = fastify();
@@ -23,15 +27,20 @@ const createServer = async (): Promise<void> => {
   const { scripts, styles } = __VITE_CLIENT_ASSETS__;
 
   app.all('*', async (request, reply) => {
-    // const isCrawler = isBot(headers['user-agent']);
+    const isCrawler = isBot(request.headers['user-agent']);
 
-    const { jsx, queryClient } = await render({ url: request.url, styles });
+    const headContext: HeadContext = {};
+    const { jsx, queryClient } = await render({
+      url: request.url,
+      headContext,
+      stylesheets: styles,
+    });
 
     const stream = createStream(jsx, {
-      entryScripts: scripts,
       useOnAllReady: true,
-      onBeforePipe: dehydrateQueryClient(queryClient),
-      onAfterPipe: writeDehydratedState,
+      entryScripts: scripts,
+      enhancers: [new HeadStreamEnhancer(headContext), new ReactQueryStreamEnhancer(queryClient)],
+      headContext,
     });
 
     return stream(reply);

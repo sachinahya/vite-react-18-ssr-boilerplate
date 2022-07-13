@@ -1,23 +1,12 @@
-import { FC, useEffect } from 'react';
+import { FC, ReactElement } from 'react';
+import { Helmet } from 'react-helmet-async';
 
-import { useHeadContext } from '../lib/head';
+export type HeadChild = ReactElement | null;
 
 export interface HeadProps {
-  title?: string;
+  children?: HeadChild | HeadChild[];
 }
 
-export const Head: FC<HeadProps> = ({ title }) => {
-  const context = useHeadContext();
-
-  if (import.meta.env.SSR && title) {
-    context.setState(title);
-  }
-
-  useEffect(() => {
-    if (title && title !== document.title) {
-      document.title = title;
-    }
-  }, [title]);
-
-  return null;
+export const Head: FC<HeadProps> = ({ children }) => {
+  return <Helmet prioritizeSeoTags>{children}</Helmet>;
 };

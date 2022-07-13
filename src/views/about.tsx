@@ -9,7 +9,9 @@ const TodoList = lazy(() =>
 export const About: FC = () => {
   return (
     <div>
-      <Head title="About" />
+      <Head>
+        <title>About</title>
+      </Head>
       <h1>About</h1>
       <Suspense fallback={<div>Loading todo 1...</div>}>
         <TodoList />

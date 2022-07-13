@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from '../components/routes';
 import { APP_CONTAINER_ID } from '../constants';
+import { HeadProvider } from '../lib/head/head-provider';
 import { createQueryClient } from '../lib/query/create-query-client';
 
 const queryClient = createQueryClient();
@@ -17,10 +18,12 @@ const root = document.getElementById(APP_CONTAINER_ID);
 if (root) {
   hydrateRoot(
     root,
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </QueryClientProvider>,
+    <HeadProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HeadProvider>,
   );
 }
