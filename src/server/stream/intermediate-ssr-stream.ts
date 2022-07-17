@@ -1,16 +1,20 @@
 import { Writable } from 'stream';
 
-import { StreamEnhancer } from './enhancers/stream-enhancer.js';
-import { NodeStreamWriter } from './writers/node-stream-writer.js';
+import { SsrDataWriter } from '../../lib/hydration/ssr-data.js';
+import { StreamEnhancer } from '../../lib/hydration/stream-enhancer.js';
 
 export class IntermediateSsrStream extends Writable {
   #parentWritable: Writable;
   #enhancers: StreamEnhancer[];
+  #writeFn: (chunk: unknown) => void;
 
   constructor(writable: Writable, enhancers: StreamEnhancer[]) {
     super();
     this.#parentWritable = writable;
     this.#enhancers = enhancers;
+    this.#writeFn = (chunk) => {
+      writable.write(chunk);
+    };
   }
 
   override _write(
@@ -23,7 +27,7 @@ export class IntermediateSsrStream extends Writable {
     }
 
     for (const enhancer of this.#enhancers) {
-      const writer = new NodeStreamWriter(this.#parentWritable, enhancer.scriptKey);
+      const writer = new SsrDataWriter(enhancer.scriptKey, this.#writeFn);
       enhancer.onBeforeWrite(writer);
     }
 

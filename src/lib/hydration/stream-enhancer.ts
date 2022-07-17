@@ -1,4 +1,4 @@
-import { StreamWriter } from '../writers/stream-writer.js';
+import { SsrDataWriter } from './ssr-data.js';
 
 export interface StreamEnhancer {
   readonly scriptKey: string;
@@ -8,5 +8,5 @@ export interface StreamEnhancer {
    *
    * @param writer A function to write a chunk to the stream.
    */
-  onBeforeWrite(writer: StreamWriter): void;
+  onBeforeWrite(writer: SsrDataWriter): void;
 }

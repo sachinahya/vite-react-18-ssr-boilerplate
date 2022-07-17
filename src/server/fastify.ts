@@ -9,8 +9,9 @@ import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom
 import { APP_CONTAINER_ID } from '../constants.js';
 import { getInitialSsrHead } from '../lib/head/get-initial-ssr-head.js';
 import { HeadContext } from '../lib/head/head-provider.js';
+import { getGlobalBootstrap } from '../lib/hydration/ssr-data.js';
+import { StreamEnhancer } from '../lib/hydration/stream-enhancer.js';
 
-import { StreamEnhancer } from './stream/enhancers/stream-enhancer.js';
 import { IntermediateSsrStream } from './stream/intermediate-ssr-stream.js';
 
 export const listen = async (app: FastifyInstance, port: number): Promise<void> => {
@@ -57,7 +58,8 @@ export const createStream = (
     let didError = false;
 
     // Start writing what we can before React starts rendering.
-    reply.raw.write(`<!doctype html><html><head>`);
+    const bootstrap = getGlobalBootstrap(enhancers?.map((enhancer) => enhancer.scriptKey));
+    reply.raw.write(`<!doctype html><html><head>${bootstrap}`);
 
     const pipeableStream = renderToPipeableStream(jsx, {
       bootstrapModules: entryScripts,

@@ -17,6 +17,13 @@ declare global {
   };
 
   interface Window {
+    // __ssr_chunks__: unknown;
+
+    // __ssr_data__: unknown;
+
+    /**
+     * @deprecated
+     */
     __REACT_QUERY_STATE__: unknown;
   }
 }

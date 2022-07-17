@@ -3,16 +3,15 @@ import '../lib/fetch-polyfill.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { fastifyStatic } from '@fastify/static';
+import fastifyStatic from '@fastify/static';
 import { fastify } from 'fastify';
 import isBot from 'isbot';
 
 import { HeadContext } from '../lib/head/head-provider.js';
+import { ReactQueryStreamEnhancer } from '../lib/query/hydration.js';
 
 import { render } from './entry-server.js';
 import { createStream, listen } from './fastify.js';
-import { HeadStreamEnhancer } from './stream/enhancers/head-stream-enhancer.js';
-import { ReactQueryStreamEnhancer } from './stream/enhancers/react-query-stream-enhancer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +22,7 @@ const createServer = async (): Promise<void> => {
   const distRoot = path.join(__dirname, '..');
 
   // Serve the client output as static assets.
+  // @ts-expect-error -- They do not define types for their CJS export correctly.
   await app.register(fastifyStatic, {
     root: path.join(distRoot, 'client/assets'),
     prefix: '/assets',
@@ -43,9 +43,9 @@ const createServer = async (): Promise<void> => {
     });
 
     const stream = createStream(jsx, {
-      useOnAllReady: true,
+      useOnAllReady: isCrawler,
       entryScripts: scripts,
-      enhancers: [new HeadStreamEnhancer(headContext), new ReactQueryStreamEnhancer(queryClient)],
+      enhancers: [new ReactQueryStreamEnhancer(queryClient)],
       headContext,
     });
 
