@@ -20,8 +20,6 @@ const main = async () => {
   const clientResult = await build({
     build: {
       outDir: path.join(distDir, 'client'),
-      manifest: true,
-      ssrManifest: true,
     },
   });
 

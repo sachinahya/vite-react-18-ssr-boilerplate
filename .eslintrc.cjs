@@ -376,6 +376,8 @@ module.exports = {
       rules: {
         // These config files require default exports.
         'import/no-default-export': 'off',
+
+        'import/no-nodejs-modules': 'off',
       },
     },
     {

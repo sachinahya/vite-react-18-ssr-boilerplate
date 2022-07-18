@@ -24,6 +24,16 @@
     "*.{json,md,css,scss,yml}": "yarn prettier --write",
     "package.json": "sort-package-json"
   },
+  "browserslist": {
+    "browser": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ],
+    "server": [
+      "node 16"
+    ]
+  },
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
@@ -60,9 +70,12 @@
     "@vanilla-extract/css": "^1.7.2",
     "@vanilla-extract/vite-plugin": "^3.2.1",
     "@vitejs/plugin-react": "^2.0.0",
+    "browserslist": "^4.21.2",
     "chalk": "^5.0.1",
     "cross-env": "^7.0.3",
     "detect-port": "^1.3.0",
+    "esbuild": "^0.14.49",
+    "esbuild-plugin-browserslist": "^0.4.12",
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-typescript": "^3.2.7",
