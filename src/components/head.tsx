@@ -1,5 +1,6 @@
 import { FC, ReactElement } from 'react';
 import { Helmet } from 'react-helmet-async';
+// import { useSomething } from 'virtual:use-something';
 
 export type HeadChild = ReactElement | null;
 

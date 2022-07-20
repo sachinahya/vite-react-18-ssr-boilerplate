@@ -3,11 +3,11 @@ import '../lib/fetch-polyfill.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// eslint-disable-next-line import/no-named-as-default -- Types are wrong, doesn't have a named export.
 import fastifyStatic from '@fastify/static';
 import { fastify } from 'fastify';
 import isBot from 'isbot';
 
-import { HeadContext } from '../lib/head/head-provider.js';
 import { ReactQueryStreamEnhancer } from '../lib/query/hydration.js';
 
 import { render } from './entry-server.js';
@@ -35,18 +35,16 @@ const createServer = async (): Promise<void> => {
   app.all('*', async (request, reply) => {
     const isCrawler = isBot(request.headers['user-agent']);
 
-    const headContext: HeadContext = {};
-    const { jsx, queryClient } = await render({
+    const result = await render({
       url: request.url,
-      headContext,
       stylesheets: styles,
     });
 
-    const stream = createStream(jsx, {
+    const stream = createStream(result.jsx, {
       useOnAllReady: isCrawler,
       entryScripts: scripts,
-      enhancers: [new ReactQueryStreamEnhancer(queryClient)],
-      headContext,
+      enhancers: [new ReactQueryStreamEnhancer(result.queryClient)],
+      headContext: result.headContext,
     });
 
     return stream(reply);

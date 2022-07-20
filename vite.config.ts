@@ -1,9 +1,13 @@
 /// <reference types="vitest/config" />
+
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
-import react from '@vitejs/plugin-react';
+import { default as react } from '@vitejs/plugin-react';
 import browserslist from 'browserslist';
 import { resolveToEsbuildTarget } from 'esbuild-plugin-browserslist';
 import { defineConfig } from 'vite';
+import { default as inspect } from 'vite-plugin-inspect';
+
+import { reactSsrContext } from './tooling/vite-plugin-react-ssr-context.js';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ ssrBuild }) => {
@@ -32,7 +36,7 @@ export default defineConfig(({ ssrBuild }) => {
       ssrManifest: !ssrBuild,
       target,
     },
-    plugins: [vanillaExtractPlugin(), react()],
+    plugins: [inspect(), reactSsrContext(), vanillaExtractPlugin(), react()],
     test: {
       globals: true,
       environment: 'jsdom',

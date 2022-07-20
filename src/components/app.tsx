@@ -4,6 +4,7 @@ import { Link, Outlet } from 'react-router-dom';
 import {} from './app.css.js';
 import { Head } from './head.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface -- We will fill it in later.
 export interface AppProps {}
 
 export const App: FC<AppProps> = () => {

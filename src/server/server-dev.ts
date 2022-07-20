@@ -8,13 +8,11 @@ import fastifyExpress from '@fastify/express';
 import detectPort from 'detect-port';
 import { fastify } from 'fastify';
 import { JSDOM } from 'jsdom';
-import { ReactNode } from 'react';
-import { QueryClient } from 'react-query';
 import { createServer as createViteServer } from 'vite';
 
-import { HeadContext } from '../lib/head/head-provider.js';
 import { ReactQueryStreamEnhancer } from '../lib/query/hydration.js';
 
+import { RenderAppResult } from './entry-server.js';
 import { createStream, listen } from './fastify.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +20,7 @@ const __dirname = path.dirname(__filename);
 
 const createServer = async (): Promise<void> => {
   const app = fastify({ logger: false });
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Types for this module are flaky.
   await app.register(fastifyExpress);
 
   // Create Vite server in middleware mode. This disables Vite's own HTML serving logic and let
@@ -64,15 +63,10 @@ const createServer = async (): Promise<void> => {
     // though is potentially subject to race conditions.
     const asyncDevTemplate = devTemplate.replaceAll('type="module"', 'type="module" async=""');
 
-    let jsx: ReactNode = null;
-    let queryClient: QueryClient;
-    const headContext: HeadContext = {};
+    let result: RenderAppResult;
 
     try {
-      ({ jsx, queryClient } = await render({
-        url,
-        headContext,
-      }));
+      result = await render({ url });
     } catch (error) {
       if (error instanceof Error) {
         // If an error is caught, let Vite fix the stacktrace so it maps back to your actual
@@ -83,12 +77,12 @@ const createServer = async (): Promise<void> => {
       throw error;
     }
 
-    const stream = createStream(jsx, {
-      useOnAllReady: false,
+    const stream = createStream(result.jsx, {
+      useOnAllReady: true,
       entryScripts: scripts,
       devTemplate: asyncDevTemplate,
-      enhancers: [new ReactQueryStreamEnhancer(queryClient)],
-      headContext,
+      enhancers: [new ReactQueryStreamEnhancer(result.queryClient)],
+      headContext: result.headContext,
     });
 
     return stream(reply);

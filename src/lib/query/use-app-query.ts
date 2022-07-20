@@ -9,7 +9,8 @@ import {
 
 import { ReactQueryStreamReader } from './hydration.js';
 
-const reactQuerySsrReader = new ReactQueryStreamReader();
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Never called on the server.
+const reactQuerySsrReader = import.meta.env.SSR ? undefined! : new ReactQueryStreamReader();
 
 export const useAppQuery = <T>(
   queryKey: QueryKey,
