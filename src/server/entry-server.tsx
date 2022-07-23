@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { StaticRouter } from 'react-router-dom/server';
 
 import { AppProps } from '../components/app.js';
-import { Head } from '../components/head.js';
 import { AppRoutes } from '../components/routes.js';
 import { HeadContext, HeadProvider } from '../lib/head/head-provider.js';
 import { createQueryClient } from '../lib/query/create-query-client.js';
@@ -12,7 +11,6 @@ import { createSsrContext, SsrContext, SsrContextProvider } from '../lib/ssr-con
 
 export interface RenderAppOptions extends AppProps {
   url: string;
-  stylesheets?: string[];
 }
 
 export interface RenderAppResult {
@@ -22,11 +20,7 @@ export interface RenderAppResult {
   headContext: HeadContext;
 }
 
-export const render = ({
-  url,
-  stylesheets,
-  ...props
-}: RenderAppOptions): Promise<RenderAppResult> => {
+export const render = ({ url, ...props }: RenderAppOptions): Promise<RenderAppResult> => {
   // Initialise the query client to use for this request.
   const queryClient = createQueryClient();
 
@@ -37,11 +31,6 @@ export const render = ({
   const jsx = (
     <SsrContextProvider context={ssrContext}>
       <HeadProvider context={headContext}>
-        <Head>
-          {stylesheets
-            ? stylesheets.map((href) => <link key={href} href={href} rel="stylesheet" />)
-            : null}
-        </Head>
         <QueryClientProvider client={queryClient}>
           <StaticRouter location={url}>
             <AppRoutes {...props} />

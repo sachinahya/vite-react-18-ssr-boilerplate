@@ -31,6 +31,7 @@ export interface CreateStreamOptions {
   useOnAllReady?: boolean;
   devTemplate?: string;
   enhancers?: StreamEnhancer[];
+  stylesheets?: string[];
 }
 
 const DOCTYPE = '<!doctype html>';
@@ -48,7 +49,7 @@ export const createStream = (
   jsx: ReactNode,
   options: CreateStreamOptions,
 ): ((reply: FastifyReply) => FastifyReply) => {
-  const { headContext, entryScripts, useOnAllReady, devTemplate, enhancers } = options;
+  const { headContext, entryScripts, useOnAllReady, devTemplate, enhancers, stylesheets } = options;
 
   const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
     ? 'onAllReady'
@@ -67,7 +68,7 @@ export const createStream = (
         setHeaders(reply.raw, didError);
 
         // Add the head content, grabbing whatever context we can from the app render.
-        const headHtml = getInitialSsrHead(headContext);
+        const headHtml = getInitialSsrHead(headContext, stylesheets);
         reply.raw.write(`${headHtml}</head><body><div id="${APP_CONTAINER_ID}">`);
 
         const useReactStreamWriter = !useOnAllReady && enhancers;

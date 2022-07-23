@@ -33,18 +33,20 @@ const createServer = async (): Promise<void> => {
   const { scripts, styles } = __VITE_CLIENT_ASSETS__;
 
   app.all('*', async (request, reply) => {
+    if (request.url === '/favicon.ico') {
+      return reply.status(404).send();
+    }
+
     const isCrawler = isBot(request.headers['user-agent']);
 
-    const result = await render({
-      url: request.url,
-      stylesheets: styles,
-    });
+    const result = await render({ url: request.url });
 
     const stream = createStream(result.jsx, {
       useOnAllReady: isCrawler,
       entryScripts: scripts,
       enhancers: [new ReactQueryStreamEnhancer(result.queryClient)],
       headContext: result.headContext,
+      stylesheets: styles,
     });
 
     return stream(reply);
