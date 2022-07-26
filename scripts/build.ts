@@ -39,11 +39,21 @@ const main = async () => {
     throw new Error('No index file found in the client build output.');
   }
 
+  const ssrManifestFile = output.find((item) => item.fileName === 'ssr-manifest.json');
+  if (
+    !ssrManifestFile ||
+    !('source' in ssrManifestFile) ||
+    typeof ssrManifestFile.source !== 'string'
+  ) {
+    throw new Error('No SSR manifest found in the client build output.');
+  }
+
   const dom = new JSDOM(indexFile.source);
 
   const assets = {
     scripts: extractScripts(dom.window.document),
     styles: extractStyles(dom.window.document),
+    ssrManifest: JSON.parse(ssrManifestFile.source) as Record<string, string[]>,
   };
 
   await build({

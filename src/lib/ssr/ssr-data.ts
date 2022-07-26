@@ -36,11 +36,11 @@ export const getGlobalBootstrap = (keys?: string[]): string => {
 };
 
 export class SsrDataWriter<T = unknown> {
-  #key: string;
+  #dataKey: string;
   #write: (chunk: unknown) => void;
 
-  constructor(key: string, write: (chunk: unknown) => void) {
-    this.#key = key;
+  constructor(dataKey: string, write: (chunk: unknown) => void) {
+    this.#dataKey = dataKey;
     this.#write = write;
   }
 
@@ -50,37 +50,41 @@ export class SsrDataWriter<T = unknown> {
     const scriptDataAssignment = chunksArr
       .map(
         ({ id, data }) =>
-          `window.${SSR_CHUNKS_KEY}[${JSON.stringify(this.#key)}][${JSON.stringify(
+          `window.${SSR_CHUNKS_KEY}[${JSON.stringify(this.#dataKey)}][${JSON.stringify(
             id,
           )}] = ${JSON.stringify(data)};`,
       )
       .join('\n');
 
-    const scriptContent = wrapImmediateScript(this.#key, scriptDataAssignment);
+    const scriptContent = wrapImmediateScript(
+      `const d = document.createElement('script');` +
+        `d.innerHTML = ${JSON.stringify(scriptDataAssignment)};` +
+        `document.body.appendChild(d);`,
+    );
+
     this.#write(scriptContent);
   }
 }
 
 export abstract class SsrDataReader<T> {
-  #key: string;
+  #dataKey: string;
   #window: GlobalSsrData<T>;
 
-  constructor(key: string) {
-    this.#key = key;
-
+  constructor(dataKey: string) {
     if (import.meta.env.SSR) {
       throw new Error('Cannot use SsrDataReader on the server!');
     }
 
+    this.#dataKey = dataKey;
     this.#window = window as unknown as GlobalSsrData<T>;
   }
 
   readDataChunk(id: string): T | undefined {
-    return this.#window[SSR_CHUNKS_KEY][this.#key]?.[id];
+    return this.#window[SSR_CHUNKS_KEY][this.#dataKey]?.[id];
   }
 
   deleteDataChunk(id: string): void {
-    const section = this.#window[SSR_CHUNKS_KEY][this.#key];
+    const section = this.#window[SSR_CHUNKS_KEY][this.#dataKey];
 
     if (section) {
       section[id] = undefined as T | undefined;

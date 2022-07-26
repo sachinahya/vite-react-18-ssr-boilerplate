@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { hydrate, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -18,12 +19,14 @@ const root = document.getElementById(APP_CONTAINER_ID);
 if (root) {
   hydrateRoot(
     root,
-    <HeadProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </HeadProvider>,
+    <StrictMode>
+      <HeadProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </HeadProvider>
+    </StrictMode>,
   );
 }

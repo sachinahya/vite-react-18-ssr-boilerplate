@@ -9,6 +9,7 @@ declare global {
   const __VITE_CLIENT_ASSETS__: {
     scripts: string[];
     styles: string[];
+    ssrManifest: Record<string, string[]>;
   };
 
   interface Window {
