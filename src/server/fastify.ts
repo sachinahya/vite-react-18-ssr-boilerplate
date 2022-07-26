@@ -9,8 +9,8 @@ import { renderToPipeableStream, RenderToPipeableStreamOptions } from 'react-dom
 import { APP_CONTAINER_ID } from '../constants.js';
 import { getInitialSsrHead } from '../lib/head/get-initial-ssr-head.js';
 import { HeadContext } from '../lib/head/head-provider.js';
-import { getGlobalBootstrap } from '../lib/hydration/ssr-data.js';
-import { StreamEnhancer } from '../lib/hydration/stream-enhancer.js';
+import { getGlobalBootstrap } from '../lib/ssr/ssr-data.js';
+import { StreamEnhancer } from '../lib/ssr/stream-enhancer.js';
 
 import { IntermediateSsrStream } from './stream/intermediate-ssr-stream.js';
 
@@ -28,10 +28,10 @@ export const listen = async (app: FastifyInstance, port: number): Promise<void> 
 export interface CreateStreamOptions {
   headContext: HeadContext;
   entryScripts?: string[];
+  entryStyles?: string[];
   useOnAllReady?: boolean;
   devTemplate?: string;
   enhancers?: StreamEnhancer[];
-  stylesheets?: string[];
 }
 
 const DOCTYPE = '<!doctype html>';
@@ -49,7 +49,7 @@ export const createStream = (
   jsx: ReactNode,
   options: CreateStreamOptions,
 ): ((reply: FastifyReply) => FastifyReply) => {
-  const { headContext, entryScripts, useOnAllReady, devTemplate, enhancers, stylesheets } = options;
+  const { headContext, entryScripts, useOnAllReady, devTemplate, enhancers, entryStyles } = options;
 
   const reactRenderMethodName: keyof RenderToPipeableStreamOptions = useOnAllReady
     ? 'onAllReady'
@@ -68,7 +68,7 @@ export const createStream = (
         setHeaders(reply.raw, didError);
 
         // Add the head content, grabbing whatever context we can from the app render.
-        const headHtml = getInitialSsrHead(headContext, stylesheets);
+        const headHtml = getInitialSsrHead(headContext, entryStyles);
         reply.raw.write(`${headHtml}</head><body><div id="${APP_CONTAINER_ID}">`);
 
         const useReactStreamWriter = !useOnAllReady && enhancers;
@@ -81,9 +81,6 @@ export const createStream = (
         // Send the HTML.
         const pipedStream: Writable = pipeableStream.pipe(writableStream);
 
-        // Close off the document.
-        reply.raw.write(`</div>${devTemplate || ''}</body></html>`);
-
         if (useReactStreamWriter) {
           pipedStream.once('finish', () => {
             // Normally React calls .end on the writable by itself.
@@ -91,9 +88,14 @@ export const createStream = (
             // correctly implements all needed methods.
             // So we will call .end manually if the writable has not been ended yet.
             if (!reply.raw.writableEnded) {
+              // Close off the document.
+              reply.raw.write(`</div>${devTemplate || ''}</body></html>`);
               reply.raw.end();
             }
           });
+        } else {
+          // Close off the document.
+          reply.raw.write(`</div>${devTemplate || ''}</body></html>`);
         }
       },
       onShellError: () => {

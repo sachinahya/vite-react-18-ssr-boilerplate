@@ -1,13 +1,14 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import stripIndent from 'strip-indent';
-import { normalizePath, Plugin, PluginOption } from 'vite';
+import { normalizePath, Plugin, PluginOption, transformWithEsbuild } from 'vite';
 
-import { injectSsrModuleRegistration } from './inject-ssr-module-registration.js';
+import { injectSsrContext } from './babel-transform.js';
 
 const virtualModulePlugin = (): Plugin => {
   const virtualModuleId = 'virtual:react-ssr-context';
   const resolvedVirtualModuleId = '\0' + virtualModuleId;
+  const rawPluginCode = readFileSync('./tooling/plugin-code.tsx', 'utf8');
 
   return {
     enforce: 'pre',
@@ -17,32 +18,10 @@ const virtualModulePlugin = (): Plugin => {
         return resolvedVirtualModuleId;
       }
     },
-    load(id) {
+    async load(id) {
       if (id === resolvedVirtualModuleId) {
-        return stripIndent(`
-          import { createElement, createContext, useContext, useCallback } from 'react';
-
-          const SsrContext = createContext(() => {
-            // Do nothing by default.
-          });
-
-          export const createSsrContext = () => {
-            return {
-              modules: new Set(),
-            };
-          };
-
-          export const SsrContextProvider = ({ children, context }) => {
-            const contextValue = useCallback((id) => {
-              context.modules.add(id);
-            }, [context]);
-            return createElement(SsrContext.Provider, { children, value: contextValue })
-          };
-
-          export const useRegisterSsrModule = (moduleId) => {
-            useContext(SsrContext)(moduleId);
-          };
-        `);
+        const pluginCode = await transformWithEsbuild(rawPluginCode, 'plugin-code.tsx');
+        return pluginCode;
       }
     },
   };
@@ -57,7 +36,7 @@ const transformPlugin = (): Plugin => ({
     }
 
     const moduleId = normalizePath(path.relative(process.cwd(), id));
-    const transformResult = injectSsrModuleRegistration({ code, moduleId });
+    const transformResult = injectSsrContext({ code, moduleId });
 
     return {
       code: transformResult.code,

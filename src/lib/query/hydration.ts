@@ -1,7 +1,7 @@
 import { Query, QueryClient, DehydratedState } from 'react-query';
 
-import { SsrDataReader, SsrDataWriter } from '../hydration/ssr-data.js';
-import { StreamEnhancer } from '../hydration/stream-enhancer.js';
+import { ChunkToWrite, SsrDataReader, SsrDataWriter } from '../ssr/ssr-data.js';
+import { StreamEnhancer } from '../ssr/stream-enhancer.js';
 
 type DehydratedQuery = DehydratedState['queries'][number];
 
@@ -51,24 +51,26 @@ export class ReactQueryStreamEnhancer implements StreamEnhancer {
       return;
     }
 
-    // We have more queries to hydrate since last time so let's find them.
-    const readyQueries = queryClientCache.filter((query) => {
-      // Get successful queries that we have not processed yet.
-      return query.state.status === 'success' && !this.#dehydratedQueryHashes.has(query.queryHash);
-    });
+    const chunks: ChunkToWrite<unknown>[] = [];
+    for (const query of queryClientCache) {
+      // Is successful and not been processed yet.
+      const shouldDehydrateQuery =
+        query.state.status === 'success' && !this.#dehydratedQueryHashes.has(query.queryHash);
 
-    if (readyQueries.length === 0) {
-      // Queries are not successful (yet) so exit early.
-      return;
+      if (!shouldDehydrateQuery) {
+        continue;
+      }
+
+      const dehydratedQuery = dehydrateQuery(query);
+
+      chunks.push({
+        id: dehydratedQuery.queryHash,
+        data: dehydratedQuery,
+      });
+
+      this.#dehydratedQueryHashes.add(query.queryHash);
     }
 
-    const dehydratedQueries = readyQueries.map((query) => dehydrateQuery(query));
-
-    writer.emitDataChunks(
-      dehydratedQueries.map((query) => ({
-        id: query.queryHash,
-        data: query,
-      })),
-    );
+    writer.emitDataChunks(chunks);
   }
 }

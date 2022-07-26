@@ -1,7 +1,7 @@
 import { Writable } from 'stream';
 
-import { SsrDataWriter } from '../../lib/hydration/ssr-data.js';
-import { StreamEnhancer } from '../../lib/hydration/stream-enhancer.js';
+import { SsrDataWriter } from '../../lib/ssr/ssr-data.js';
+import { StreamEnhancer } from '../../lib/ssr/stream-enhancer.js';
 
 export class IntermediateSsrStream extends Writable {
   #parentWritable: Writable;

@@ -3,6 +3,8 @@ import { useQuery } from 'react-query';
 
 import { delay } from '../lib/delay.js';
 
+import * as styles from './picture.css.js';
+
 export const Picture: FC<{ id: string }> = ({ id }) => {
   const { data } = useQuery(['picture', id], async () => {
     await delay(Number.parseInt(id) * 2000);
@@ -11,7 +13,7 @@ export const Picture: FC<{ id: string }> = ({ id }) => {
   });
 
   return (
-    <div>
+    <div className={styles.root}>
       <pre>{JSON.stringify(data, undefined, 2)}</pre>
     </div>
   );
